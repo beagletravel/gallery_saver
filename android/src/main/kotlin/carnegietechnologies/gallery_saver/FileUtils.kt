@@ -62,7 +62,12 @@ internal object FileUtils {
         values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis())
         values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
 
-        var imageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        var imageUri =  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                             } else {
+                              MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                            }
+        
         try {
             imageUri = contentResolver.insert(imageUri, values)
 
@@ -91,6 +96,8 @@ internal object FileUtils {
             }
         } catch (e: IOException) {
             contentResolver.delete(imageUri!!, null, null)
+            return false
+        } catch (t: Throwable) { // IllegalArgumentException: Invalid column NULL
             return false
         }
 
